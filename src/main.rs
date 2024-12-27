@@ -65,8 +65,6 @@ fn main() {
 
     registers[Register::PC as usize] = 0x3000;
 
-    // println!("{}", 1 as Register);
-
     let r_pc = Register::PC as usize;
     let r_cond = Register::Cond as usize;
 
@@ -179,22 +177,22 @@ fn main() {
                 memory[(registers[r1] + offset) as usize] = registers[r0];
             }
             Op::TRAP => {
+                let r0 = Register::R0 as usize;
                 registers[Register::R7 as usize] = registers[r_pc];
                 let trap_code: Trap = unsafe { mem::transmute((instr & 0xFF) as u16) };
                 match trap_code {
                     Trap::Getc => {
                         let mut buffer = [0u8; 1];
                         io::stdin().read_exact(&mut buffer).unwrap();
-                        let r0 = Register::R0 as usize;
                         registers[r0] = buffer[0] as u16;
                         update_flags(&mut registers, r0);
                     }
                     Trap::Out => {
-                        print!("{}", registers[Register::R0 as usize] as u8 as char);
+                        print!("{}", registers[r0] as u8 as char);
                         io::stdout().flush().unwrap();
                     }
                     Trap::Puts => {
-                        let addr = registers[Register::R0 as usize] as usize;
+                        let addr = registers[r0] as usize;
                         for &x in &memory[addr..] {
                             if x == 0 {
                                 break;
@@ -212,12 +210,11 @@ fn main() {
                         print!("{}", buffer[0] as char);
                         io::stdout().flush().unwrap();
 
-                        let r0 = Register::R0 as usize;
                         registers[r0] = buffer[0] as u16;
                         update_flags(&mut registers, r0);
                     }
                     Trap::Putsp => {
-                        let addr = registers[Register::R0 as usize] as usize;
+                        let addr = registers[r0] as usize;
                         for &x in &memory[addr..] {
                             if x == 0 {
                                 break;
