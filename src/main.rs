@@ -242,19 +242,13 @@ fn main() {
 }
 
 fn sign_extend(x: u16, bit_count: usize) -> u16 {
-    if (x >> (bit_count - 1)) & 1 == 1 {
-        x | (0xFFFF << bit_count)
-    } else {
-        x
-    }
+    x | (((x >> (bit_count - 1)) & 1) as u16 * (0xFFFF << bit_count))
 }
 
 fn update_flags(registers: &mut [u16; REGISTER_COUNT], r: usize) {
-    registers[r] = if registers[r] == 0 {
-        Flag::Zero
-    } else if registers[r] >> 15 == 1 {
-        Flag::Neg
-    } else {
-        Flag::Pos
+    registers[r] = match registers[r] {
+        0 => Flag::Zero,
+        x if x >> 15 == 1 => Flag::Neg,
+        _ => Flag::Pos,
     } as u16;
 }
